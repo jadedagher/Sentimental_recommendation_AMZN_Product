@@ -1,8 +1,5 @@
 #hello Word 
 
-install.packages("jsonlite")
-install.packages("tidytext")
-
 library(jsonlite)
 library(data.table)
 library(dplyr)
@@ -28,7 +25,7 @@ data <- data.table(data)
 # set for sample function, used to retrieve the same results at any time  
 set.seed(101)
 
-# N = 10% des lignes pour avoir exactement 1e+05 obs
+# N = 10% rows of data 
 N <- floor(nrow(data) * (10/100))
 
 # 10% echantillon of data
@@ -43,39 +40,44 @@ colnames(data_ech_sent) <- c("reviewerID","reviewText", "overall")
 data_ech_sent$reviewText <- as.character(data_ech_sent$reviewText)
 str(data_ech_sent)
 
-# create data frame with one line per word
+# Create data frame with one line per word
 reviews_words <- data_ech_sent %>%
   select(reviewerID, reviewText, overall) %>%
   unnest_tokens(word, reviewText) %>%
   filter(!word %in% stop_words$word, str_detect(word, "^[a-z']+$"))
 
+# sentiment score NRC
 nrc <- sentiments %>%
   filter(sentiment %in% c('positive','negative') & lexicon == 'nrc') %>%
   mutate(nrc = ifelse(sentiment == 'positive',1,-1)) %>%
   select(word, nrc)
 
-bing <- sentiments%>%
+# sentiment score BING
+bing <- sentiments %>%
   filter(lexicon == 'bing') %>%
   mutate(bing = ifelse(sentiment == 'positive',1,-1)) %>%
   select(word, bing)
 
-loughran <- sentiments%>%
+# sentiment score LOUGHRAN
+loughran <- sentiments %>%
   filter(sentiment %in% c('positive','negative') 
-         & lexicon == 'loughran')%>%
-  mutate(loughran = ifelse(sentiment == 'positive',1,-1))%>%
+         & lexicon == 'loughran') %>%
+  mutate(loughran = ifelse(sentiment == 'positive',1,-1)) %>%
   select(word, loughran)
 
-afinn <- sentiments%>%
-  filter(lexicon == 'AFINN')%>%
+# sentiment score AFINN
+afinn <- sentiments %>%
+  filter(lexicon == 'AFINN') %>%
   select(word, afinn = score)
 
 # Join each lexicon to the review_words dataframe
-reviews_scored <- reviews_words%>%
-  left_join(nrc, by = 'word')%>%
-  left_join(bing, by = 'word')%>%
-  left_join(loughran, by = 'word')%>%
+reviews_scored <- reviews_words %>%
+  left_join(nrc, by = 'word') %>%
+  left_join(bing, by = 'word') %>%
+  left_join(loughran, by = 'word') %>%
   left_join(afinn, by = 'word')
 
+# Get the mean score for each USER
 review_scores_summary <- reviews_scored %>%
   group_by(reviewerID, overall) %>%
   summarise(nrc_score = round(mean(nrc, na.rm = T),3),
@@ -103,3 +105,34 @@ loughran.box <- ggplot(review_scores_summary, aes(x = as.character(overall), y =
        y = 'Loughran Text Review Score')
 
 grid.arrange(afinn.box, nrc.box, bing.box, loughran.box, nrow = 2)
+
+
+# ------------------------------------
+# Recommendation System based on sentimental analysis score
+# ------------------------------------
+
+
+
+
+# ------------------------------------
+# Data Enrichment
+# ------------------------------------
+
+# join "reviews_data" table on "product_metadata" table to get:
+#  - product title 
+#  - product price 
+#  - product brand 
+#  - product imgUrl 
+
+
+#product_metadata <-  stream_in(file("metadata.json"))
+
+#left join 
+#full_data <- merge(reviews_data, product_metadata, by="asin", all.x = TRUE)
+
+
+
+
+
+
+
