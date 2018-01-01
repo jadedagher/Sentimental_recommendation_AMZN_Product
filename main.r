@@ -9,33 +9,34 @@ library(stringr)
 library(ggplot2)
 library(gridExtra)
 
-# ------------------------------------
+# ------------------------------------------------------------------------
 # Import main data file (reviews_data.json)
-# ------------------------------------
+# ------------------------------------------------------------------------
 
-reviews_data <- stream_in(file("reviews_data.json"))
+reviews_data <- stream_in(file("data/reviews_data.json"))
 reviews_data <- flatten(reviews_data) 
 
-# ------------------------------------
+# ------------------------------------------------------------------------
 # Data Enrichment (see pyhton script extract_metadata.py)
-# ------------------------------------
+# ------------------------------------------------------------------------
 
 # join "reviews_data" table on "product_metadata" table to get:
 #  - product title 
 #  - product price 
 
-# To be able to import metadata file into R we must lighten it, so we design a python script 
-# to read the big metata file and then create (write) a new CSV file with the data wanted (ASIN, TITlE and PRICE columns)
+# To be able to import metadata file into R we must lighten it, so we design 
+# a python script to read the big metata file and then create (write) a new CSV 
+# file with the data wanted (ASIN, TITlE and PRICE columns)
 
-product_metadata <-  read.csv("light_metadata.csv", header=TRUE, sep=",")
+product_metadata <-  read.csv("data/light_metadata.csv", header=TRUE, sep=",")
 
 #left join 
 full_data <- merge(reviews_data, product_metadata, by="asin", all.x = TRUE)
-View(full_data)
+View(head(full_data))
 
-# ------------------------------------
+# ------------------------------------------------------------------------
 # preprocessing
-# ------------------------------------
+# ------------------------------------------------------------------------
 
 # convert into data.table 
 full_data  <- data.table(full_data)
@@ -49,9 +50,9 @@ N <- floor(nrow(full_data) * (10/100))
 # 10% echantillon of data
 data_ech <- full_data[sample(1:nrow(full_data),N),]
 
-# ------------------------------------
-# sentimental reviews analysis
-# ------------------------------------
+# ------------------------------------------------------------------------
+# sentimental reviews analysis (source code: https://goo.gl/iaLjj3)
+# ------------------------------------------------------------------------
 
 data_ech_sent <- data.frame(data_ech$reviewerID, data_ech$reviewText, data_ech$overall)
 colnames(data_ech_sent) <- c("reviewerID","reviewText", "overall")
@@ -113,10 +114,12 @@ nrc.box <- ggplot(review_scores_summary, aes(x = as.character(overall), y = nrc_
   geom_boxplot()+
   labs(x = 'AMZN overall score',
        y = 'NRC Text Review Score')
+
 bing.box <- ggplot(review_scores_summary, aes(x = as.character(overall), y = bing_score))+
   geom_boxplot()+
   labs(x = 'AMZN overall score',
        y = 'Bing Text Review Score')
+
 loughran.box <- ggplot(review_scores_summary, aes(x = as.character(overall), y = loughran_score))+
   geom_boxplot()+
   labs(x = 'AMZN overall score',
@@ -125,9 +128,9 @@ loughran.box <- ggplot(review_scores_summary, aes(x = as.character(overall), y =
 grid.arrange(afinn.box, nrc.box, bing.box, loughran.box, nrow = 2)
 
 
-# ------------------------------------
+# ------------------------------------------------------------------------
 # Recommendation System based on sentimental analysis score
-# ------------------------------------
+# ------------------------------------------------------------------------
 
 
 

@@ -3,6 +3,7 @@
 # trying to join "reviews_data" table on "product_metadata" table to get:
 #  - product title 
 #  - product price 
+#  - product brand
 
 # source code from: http://jmcauley.ucsd.edu/data/amazon/links.html (Reading the data - Pandas data frame)
 
@@ -22,8 +23,10 @@ def getDF(path):
     i += 1
   return pd.DataFrame.from_dict(df, orient='index')
 
-df = getDF('meta_Clothing_Shoes_and_Jewelry.json.gz')
+df = getDF('data/meta_Clothing_Shoes_and_Jewelry.json.gz')
 
-light_df = df.loc[:,['asin', 'title', 'price']]
+light_df = df.loc[:,['asin', 'title', 'price', 'brand']]
 
-light_df.to_csv('light_metadata.csv', sep='\t')
+light_df = light_df.rename(index=str, columns={"title": "product_title", "price": "product_price", "brand": "product_brand"})
+
+light_df.to_csv('data/light_metadata.csv', sep=',')
