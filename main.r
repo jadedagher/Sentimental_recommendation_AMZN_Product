@@ -10,26 +10,44 @@ library(ggplot2)
 library(gridExtra)
 
 # ------------------------------------
+# Import main data file (reviews_data.json)
+# ------------------------------------
+
+reviews_data <- stream_in(file("reviews_data.json"))
+reviews_data <- flatten(reviews_data) 
+
+# ------------------------------------
+# Data Enrichment (see pyhton script extract_metadata.py)
+# ------------------------------------
+
+# join "reviews_data" table on "product_metadata" table to get:
+#  - product title 
+#  - product price 
+
+# To be able to import metadata file into R we must lighten it, so we design a python script 
+# to read the big metata file and then create (write) a new CSV file with the data wanted (ASIN, TITlE and PRICE columns)
+
+product_metadata <-  read.csv("light_metadata.csv", header=TRUE, sep=",")
+
+#left join 
+full_data <- merge(reviews_data, product_metadata, by="asin", all.x = TRUE)
+View(full_data)
+
+# ------------------------------------
 # preprocessing
 # ------------------------------------
 
-data <- stream_in(file("data.json"))
-data <- flatten(data) 
-
-str(data)
-head(data)
-
 # convert into data.table 
-data <- data.table(data)
+full_data  <- data.table(full_data)
 
 # set for sample function, used to retrieve the same results at any time  
 set.seed(101)
 
 # N = 10% rows of data 
-N <- floor(nrow(data) * (10/100))
+N <- floor(nrow(full_data) * (10/100))
 
 # 10% echantillon of data
-data_ech <- data[sample(1:nrow(data),N),]
+data_ech <- full_data[sample(1:nrow(full_data),N),]
 
 # ------------------------------------
 # sentimental reviews analysis
@@ -114,21 +132,8 @@ grid.arrange(afinn.box, nrc.box, bing.box, loughran.box, nrow = 2)
 
 
 
-# ------------------------------------
-# Data Enrichment
-# ------------------------------------
-
-# join "reviews_data" table on "product_metadata" table to get:
-#  - product title 
-#  - product price 
-#  - product brand 
-#  - product imgUrl 
 
 
-#product_metadata <-  stream_in(file("metadata.json"))
-
-#left join 
-#full_data <- merge(reviews_data, product_metadata, by="asin", all.x = TRUE)
 
 
 
