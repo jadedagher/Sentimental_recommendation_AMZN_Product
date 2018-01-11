@@ -38,17 +38,37 @@ View(head(full_data))
 # preprocessing
 # ------------------------------------------------------------------------
 
-# convert into data.table 
-full_data  <- data.table(full_data)
+# Purpose: Cleaning full_data dataframe (We want only full data rows, no missing values, no NA)
+
+# Converting full_data$product_brand in character to use nchar
+full_data$product_brand <- as.character(full_data$product_brand)
+
+# logical test on full_data$product_brand to see if data exist 
+full_data$logicalTestOnStringLength <- sapply(full_data$product_brand, function(x) nchar(x) > 1)
+
+# Counting TRUE and FALSE values
+table(full_data$logicalTestOnStringLength)
+
+# Filtering only on logicalTestOnStringLength = TRUE (so only where product_brand data exist)
+cleaned_data <- subset(full_data, full_data$logicalTestOnStringLength == 'TRUE')
+
+# Removing cleaned_data$price with NA to have a clear dataset
+cleaned_data <- na.omit(cleaned_data)
+
+# Removing logicalTestOnStringLength column from cleaned_data
+cleaned_data <- cleaned_data[,1:13]
+
+# Converting cleaned_data into data.table 
+cleaned_data  <- data.table(cleaned_data)
 
 # set for sample function, used to retrieve the same results at any time  
 set.seed(101)
 
-# N = 10% rows of data 
-N <- floor(nrow(full_data) * (10/100))
+# N = 50% rows of cleaned_data 
+N <- floor(nrow(cleaned_data) * (50/100))
 
-# 10% echantillon of data
-data_ech <- full_data[sample(1:nrow(full_data),N),]
+# Creating a new dataset with 50% of rows of cleaned_data 
+data_ech <- cleaned_data[sample(1:nrow(cleaned_data),N),]
 
 # ------------------------------------------------------------------------
 # sentimental reviews analysis (source code: https://goo.gl/iaLjj3)
@@ -104,6 +124,7 @@ review_scores_summary <- reviews_scored %>%
             loughran_score = round(mean(loughran, na.rm = T),3),
             afinn_score = round(mean(afinn, na.rm = T),3))
 
+# postprocessing
 # ploting results 
 afinn.box <- ggplot(review_scores_summary, aes(x = as.character(overall), y = afinn_score))+
   geom_boxplot()+
@@ -125,11 +146,12 @@ loughran.box <- ggplot(review_scores_summary, aes(x = as.character(overall), y =
   labs(x = 'AMZN overall score',
        y = 'Loughran Text Review Score')
 
+
 grid.arrange(afinn.box, nrc.box, bing.box, loughran.box, nrow = 2)
 
 
 # ------------------------------------------------------------------------
-# Recommendation System based on sentimental analysis score
+# Recommendation System based on sentimental analysis score recorded 
 # ------------------------------------------------------------------------
 
 
