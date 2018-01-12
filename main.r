@@ -8,16 +8,17 @@ library(tidyr)
 library(stringr)
 library(ggplot2)
 library(gridExtra)
+library(recommenderlab)
 
 # ------------------------------------------------------------------------
-# Import main data file (reviews_data.json)
+# import main data file (reviews_data.json)
 # ------------------------------------------------------------------------
 
 reviews_data <- stream_in(file("data/reviews_data.json"))
 reviews_data <- flatten(reviews_data) 
 
 # ------------------------------------------------------------------------
-# Data Enrichment (see pyhton script extract_metadata.py)
+# data Enrichment (see pyhton script extract_metadata.py)
 # ------------------------------------------------------------------------
 
 # join "reviews_data" table on "product_metadata" table to get:
@@ -30,7 +31,7 @@ reviews_data <- flatten(reviews_data)
 
 product_metadata <-  read.csv("data/light_metadata.csv", header=TRUE, sep=",")
 
-#left join 
+# left join 
 full_data <- merge(reviews_data, product_metadata, by="asin", all.x = TRUE)
 View(head(full_data))
 
@@ -38,27 +39,25 @@ View(head(full_data))
 # preprocessing
 # ------------------------------------------------------------------------
 
-# Purpose: Cleaning full_data dataframe (We want only full data rows, no missing values, no NA)
+# purpose: Cleaning full_data dataframe (We want only full data rows, no missing values, no NA)
 
-# Converting full_data$product_brand in character to use nchar
-full_data$product_brand <- as.character(full_data$product_brand)
+# converting full_data$product_brand in character to use nchar
+# & logical test on full_data$product_brand to see if data exist 
+full_data$logicalTestOnStringLength <- sapply(as.character(full_data$product_brand), function(x) nchar(x) > 1)
 
-# logical test on full_data$product_brand to see if data exist 
-full_data$logicalTestOnStringLength <- sapply(full_data$product_brand, function(x) nchar(x) > 1)
-
-# Counting TRUE and FALSE values
+# counting TRUE and FALSE values
 table(full_data$logicalTestOnStringLength)
 
-# Filtering only on logicalTestOnStringLength = TRUE (so only where product_brand data exist)
+# filtering only on logicalTestOnStringLength = TRUE (so only where product_brand data exist)
 cleaned_data <- subset(full_data, full_data$logicalTestOnStringLength == 'TRUE')
 
-# Removing cleaned_data$price with NA to have a clear dataset
+# removing cleaned_data$price with NA to have a clear dataset
 cleaned_data <- na.omit(cleaned_data)
 
-# Removing logicalTestOnStringLength column from cleaned_data
+# removing logicalTestOnStringLength column from cleaned_data
 cleaned_data <- cleaned_data[,1:13]
 
-# Converting cleaned_data into data.table 
+# converting cleaned_data into data.table 
 cleaned_data  <- data.table(cleaned_data)
 
 # set for sample function, used to retrieve the same results at any time  
@@ -109,14 +108,14 @@ afinn <- sentiments %>%
   filter(lexicon == 'AFINN') %>%
   select(word, afinn = score)
 
-# Join each lexicon to the review_words dataframe
+# join each lexicon to the review_words dataframe
 reviews_scored <- reviews_words %>%
   left_join(nrc, by = 'word') %>%
   left_join(bing, by = 'word') %>%
   left_join(loughran, by = 'word') %>%
   left_join(afinn, by = 'word')
 
-# Get the mean score for each USER
+# get the mean score for each USER
 review_scores_summary <- reviews_scored %>%
   group_by(reviewerID, overall) %>%
   summarise(nrc_score = round(mean(nrc, na.rm = T),3),
@@ -151,11 +150,13 @@ grid.arrange(afinn.box, nrc.box, bing.box, loughran.box, nrow = 2)
 
 
 # ------------------------------------------------------------------------
-# Recommendation System based on sentimental analysis score recorded 
+# recommendation System based on sentimental analysis score recorded
 # ------------------------------------------------------------------------
 
-
-
+# test without sentimental score (only overall) > if work > add sentimental score
+data_ech_reco <- data.frame(data_ech$reviewerID, data_ech$reviewerName, data_ech$product_title, data_ech$product_price, 
+                            data_ech$product_brand, data_ech$overall)
+colnames(data_ech_reco) <- c("reviewerID", "reviewerName","product_title", "product_price", "product_brand", "overall")
 
 
 
