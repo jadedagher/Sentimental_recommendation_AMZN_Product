@@ -1,14 +1,17 @@
 #hello Word 
 
-library(jsonlite)
-library(data.table)
-library(dplyr)
-library(tidytext)
-library(tidyr)
-library(stringr)
-library(ggplot2)
-library(gridExtra)
-library(recommenderlab)
+# Mendatory packages
+pkg <- c("jsonlite", "data.table", "dplyr", "tidytext", "tidyr", "stringr", "ggplot2", "gridExtra", "recommenderlab")
+
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
+install_all_pkg <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+
+install_all_pkg(pkg)
 
 # ------------------------------------------------------------------------
 # import main data file (reviews_data.json)
@@ -24,6 +27,7 @@ reviews_data <- flatten(reviews_data)
 # join "reviews_data" table on "product_metadata" table to get:
 #  - product title 
 #  - product price 
+#  - product brand
 
 # To be able to import metadata file into R we must lighten it, so we design 
 # a python script to read the big metata file and then create (write) a new CSV 
