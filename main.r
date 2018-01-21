@@ -1,6 +1,6 @@
 #hello Word 
 
-# Mendatory packages
+# Mandatory packages
 pkg <- c("jsonlite", "data.table", "dplyr", "tidytext", "tidyr", "stringr", "ggplot2", "gridExtra", "recommenderlab")
 
 # check to see if packages are installed. Install them if they are not, then load them into the R session.
@@ -164,10 +164,21 @@ colnames(data_ech_reco) <- c("reviewerID", "reviewerName","product_title", "prod
 
 
 
+data_ech_mtx <- as(data_ech_reco, "realRatingMatrix")
+
+## Split data set into train and test sets (idk what given parameter means....)
+e <- evaluationScheme(data_ech_mtx, method="split", train=0.8, given=0 ,goodRating=5)
 
 
+## Recommender
+r1 <- Recommender(getData(e, "train"), "UBCF")
+
+## Predictor bur very long to compute
+p1 <- predict(r1, getData(e, "known"), type="ratings")
+p1
+
+error <- rbind(rbind(UBCF = calcPredictionAccuracy(p1, getData(e, "unknown"))))
 
 
-
-
-
+## https://cran.r-project.org/web/packages/recommenderlab/vignettes/recommenderlab.pdf 
+### checker à partir de page 15 jusqu'à 26
