@@ -177,6 +177,7 @@ r1 <- Recommender(getData(e, "train"), "UBCF")
 p1 <- predict(r1, getData(e, "known"), type="ratings")
 p1
 
+##error mesurement 
 error <- rbind(rbind(UBCF = calcPredictionAccuracy(p1, getData(e, "unknown"))))
 
 
