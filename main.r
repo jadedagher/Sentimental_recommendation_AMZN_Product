@@ -166,8 +166,10 @@ colnames(data_ech_reco) <- c("reviewerID", "reviewerName","product_title", "prod
 
 data_ech_mtx <- as(data_ech_reco, "realRatingMatrix")
 
+data_ech_1000 <- data_ech_mtx[1:1000]
+
 ## Split data set into train and test sets (idk what given parameter means....)
-e <- evaluationScheme(data_ech_mtx, method="split", train=0.8, given=0 ,goodRating=5)
+e <- evaluationScheme(data_ech_1000, method="split", train=0.8, given=1 ,goodRating=5)
 
 
 ## Recommender
@@ -182,4 +184,4 @@ error <- rbind(rbind(UBCF = calcPredictionAccuracy(p1, getData(e, "unknown"))))
 
 
 ## https://cran.r-project.org/web/packages/recommenderlab/vignettes/recommenderlab.pdf 
-### checker à partir de page 15 jusqu'à 26
+### checker à partir de page 15 jusqu'à  page 26
