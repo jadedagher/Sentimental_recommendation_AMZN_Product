@@ -158,29 +158,60 @@ grid.arrange(afinn.box, nrc.box, bing.box, loughran.box, nrow = 2)
 # ------------------------------------------------------------------------
 
 # test without sentimental score (only overall) > if work > add sentimental score
+
+## basis data frame
 data_ech_reco <- data.frame(data_ech$reviewerID, data_ech$reviewerName, data_ech$product_title, data_ech$product_price, 
                             data_ech$product_brand, data_ech$overall)
 colnames(data_ech_reco) <- c("reviewerID", "reviewerName","product_title", "product_price", "product_brand", "overall")
 
 
+## convert alphanumeric reviewerID into a numeric ID
+data_ech_reco$numericID <- as(data_ech_reco$reviewerID, "numeric")
+View(data_ech_reco)
 
+## convert data frame into realRatingMatrix type 
 data_ech_mtx <- as(data_ech_reco, "realRatingMatrix")
 
-data_ech_1000 <- data_ech_mtx[1:1000]
+
+## reducing amount of data to analize
+data_ech_1000 <- data_ech_mtx[1:4000,] ## avec ou sans virgule à voir 
+
 
 ## Split data set into train and test sets (idk what given parameter means....)
-e <- evaluationScheme(data_ech_1000, method="split", train=0.8, given=1 ,goodRating=5)
+e <- evaluationScheme(data_ech_1000, method="split", train=0.8, given=1 ,goodRating=3)
+
+## wanted to create my own train and test vector but didn't succeed....
+## because the result of the prediction is the user himself....
 
 
 ## Recommender
-r1 <- Recommender(getData(e, "train"), "UBCF")
+r1 <- Recommender(getData(e, "train"), "UBCF") #useful with a evaluationSchema
 
-## Predictor bur very long to compute
-p1 <- predict(r1, getData(e, "known"), type="ratings")
-p1
+#r1 <- Recommender(train, "UBCF") ## to use with train created
+
+## Predictor 
+p1 <- predict(r1,c(980, 27, 3200, 43, 1680), data = data_ech_1000, n = 5)
+
+#p1 <- predict(r1, getData(e, "known"), type="ratings") ##other version but not a well one, to use with evaluation Schema
+
+## print result of the recommendation
+as(p1, "list")
+## PROBLEM HERE : print the user himself.... under investigation
+
+
 
 ##error mesurement 
 error <- rbind(rbind(UBCF = calcPredictionAccuracy(p1, getData(e, "unknown"))))
+
+
+
+## GOAL
+## quatre system de reco pour chaque type d'analyse sentimentale
+## analyse pour savoir quelle est la plus cohérente
+## comparer avec le reco overall
+## 
+
+
 
 
 ## https://cran.r-project.org/web/packages/recommenderlab/vignettes/recommenderlab.pdf 
