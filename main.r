@@ -1,7 +1,7 @@
 #hello Word 
 
 # Mandatory packages
-pkg <- c("jsonlite", "data.table", "dplyr", "tidytext", "tidyr", "stringr", "ggplot2", "gridExtra", "recommenderlab")
+pkg <- c("jsonlite", "data.table", "dplyr", "tidytext", "tidyr", "stringr", "ggplot2", "gridExtra", "recommenderlab", "reshape2")
 
 # check to see if packages are installed. Install them if they are not, then load them into the R session.
 install_all_pkg <- function(pkg){
@@ -37,7 +37,6 @@ product_metadata <-  read.csv("data/light_metadata.csv", header=TRUE, sep=",")
 
 # left join 
 full_data <- merge(reviews_data, product_metadata, by="asin", all.x = TRUE)
-View(head(full_data))
 
 # ------------------------------------------------------------------------
 # preprocessing
@@ -68,10 +67,16 @@ cleaned_data  <- data.table(cleaned_data)
 set.seed(101)
 
 # N = 50% rows of cleaned_data 
-N <- floor(nrow(cleaned_data) * (50/100))
+#N <- floor(nrow(cleaned_data) * (50/100))
+
+
+setorder(data_ech, product_title)
+
+data_ech <- cleaned_data[1:20000,]
+
 
 # Creating a new dataset with 50% of rows of cleaned_data 
-data_ech <- cleaned_data[sample(1:nrow(cleaned_data),N),]
+#data_ech <- cleaned_data[sample(1:nrow(cleaned_data),N),]
 
 # ------------------------------------------------------------------------
 # sentimental reviews analysis (source code: https://goo.gl/iaLjj3)
@@ -159,60 +164,70 @@ grid.arrange(afinn.box, nrc.box, bing.box, loughran.box, nrow = 2)
 
 # test without sentimental score (only overall) > if work > add sentimental score
 
-## basis data frame
-data_ech_reco <- data.frame(data_ech$reviewerID, data_ech$reviewerName, data_ech$product_title, data_ech$product_price, 
-                            data_ech$product_brand, data_ech$overall)
-colnames(data_ech_reco) <- c("reviewerID", "reviewerName","product_title", "product_price", "product_brand", "overall")
+set.seed(100)
 
+data_ech_reco <- data.frame(data_ech$reviewerID ,data_ech$asin, data_ech$overall)
+colnames(data_ech_reco) <- c("reviewerID","product_id", "overall")
 
-## convert alphanumeric reviewerID into a numeric ID
-data_ech_reco$numericID <- as(data_ech_reco$reviewerID, "numeric")
-View(data_ech_reco)
+data_ech_reco$reviewerID <- as.numeric(data_ech_reco$reviewerID)
+data_ech_reco$overall <- as.numeric(data_ech_reco$overall)
 
-## convert data frame into realRatingMatrix type 
-data_ech_mtx <- as(data_ech_reco, "realRatingMatrix")
+setorder(data_ech_reco, product_id)
 
+# converted data_ech_reco into a recommenderlab format called realRatingMatrix
+g <- acast(data_ech_reco, reviewerID~ product_id)
+R <- as.matrix(g)
+r <- as(R, "realRatingMatrix")
 
-## reducing amount of data to analize
-data_ech_1000 <- data_ech_mtx[1:4000,] ## avec ou sans virgule à voir 
+ratings <- r[rowCounts(r) >= 4, colCounts(r) >= 6]
+ratings1 <- ratings[rowCounts(ratings) > 2,]
 
+# This function shows what the sparse matrix looks like.
+getRatingMatrix(ratings[c(1:5),c(1:4)])
 
-## Split data set into train and test sets (idk what given parameter means....)
-e <- evaluationScheme(data_ech_1000, method="split", train=0.8, given=1 ,goodRating=3)
+# Histogram of getRatings using Normalized Scores
+hist(getRatings(normalize(ratings)), breaks=100, xlim = c(-2,2), main = "Normalized-Scores Histogram")
+hist(getRatings(normalize(ratings, method="Z-score")), breaks = 100, xlim = c(-2,2), main = "Z-score Histogram")
 
-## wanted to create my own train and test vector but didn't succeed....
-## because the result of the prediction is the user himself....
+# We randomly define the which_train vector that is True for users in the training set and FALSE for the others.
+# Will set the probability in the training set as 80%
+which_train <- sample(x = c(TRUE, FALSE), size = nrow(ratings1), replace = TRUE, prob = c(0.8, 0.2))
+data_ech_reco_train <- ratings1[which_train, ]
+data_ech_reco_test <- ratings1[!which_train, ]
 
+# -----UBCF
+# The method computes the similarity between users with cosine
+UBCF_model <- Recommender(data = data_ech_reco_train, method = "UBCF")
+UBCF_predicted <- predict(object = UBCF_model, newdata = data_ech_reco_test, n = 5)
 
-## Recommender
-r1 <- Recommender(getData(e, "train"), "UBCF") #useful with a evaluationSchema
-
-#r1 <- Recommender(train, "UBCF") ## to use with train created
-
-## Predictor 
-p1 <- predict(r1,c(980, 27, 3200, 43, 1680), data = data_ech_1000, n = 5)
-
-#p1 <- predict(r1, getData(e, "known"), type="ratings") ##other version but not a well one, to use with evaluation Schema
-
-## print result of the recommendation
-as(p1, "list")
-## PROBLEM HERE : print the user himself.... under investigation
-
-
-
-##error mesurement 
-error <- rbind(rbind(UBCF = calcPredictionAccuracy(p1, getData(e, "unknown"))))
-
-
-
-## GOAL
-## quatre system de reco pour chaque type d'analyse sentimentale
-## analyse pour savoir quelle est la plus cohérente
-## comparer avec le reco overall
-## 
+# list with the recommendations to the test set users.
+reco_matrix <- sapply(UBCF_predicted@items, function(x) {
+  colnames(ratings)[x]
+})
+reco_matrix[1:50]
 
 
 
+# Evaluating the Recommender Systems
+# ------------------------------------------------------------------------
+eval_sets <- evaluationScheme(data = ratings1, method = "cross-validation", k = 4, given = 2, goodRating = 5)
+size_sets <-sapply(eval_sets@runsTrain, length)
 
-## https://cran.r-project.org/web/packages/recommenderlab/vignettes/recommenderlab.pdf 
-### checker à partir de page 15 jusqu'à  page 26
+models_evaluated <- list(UBCF_cos = list(name = "UBCF", param = list(method = "cosine")))
+
+# In order to evaluate the models, we need to test them, varying the number of items.
+n_recommendations <- c(1, 10, 50, 100, 200, 500, 1000)
+
+# evaluate the models
+list_results <- evaluate(x = eval_sets, method = models_evaluated, n = n_recommendations)
+
+# extract the related average confusion matrices
+avg_matrices <- lapply(list_results, avg)
+
+# explore the performance evaluation
+head(avg_matrices$UBCF_cos[, 5:8])
+
+# fuck 
+plot(list_results, annotate = 1)
+plot(list_results, "prec/rec", annotate = 1, legend = "bottomright", ylim = c(0,0.4))
+
