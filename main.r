@@ -82,14 +82,14 @@ data_ech <- cleaned_data[1:20000,]
 # sentimental reviews analysis (source code: https://goo.gl/iaLjj3)
 # ------------------------------------------------------------------------
 
-data_ech_sent <- data.frame(data_ech$reviewerID, data_ech$reviewText, data_ech$overall)
-colnames(data_ech_sent) <- c("reviewerID","reviewText", "overall")
+data_ech_sent <- data.frame(data_ech$reviewerID, data_ech$asin, data_ech$reviewText, data_ech$overall)
+colnames(data_ech_sent) <- c("reviewerID", "asin", "reviewText", "overall")
 data_ech_sent$reviewText <- as.character(data_ech_sent$reviewText)
 str(data_ech_sent)
 
 # Create data frame with one line per word
 reviews_words <- data_ech_sent %>%
-  select(reviewerID, reviewText, overall) %>%
+  select(reviewerID, asin, reviewText, overall) %>%
   unnest_tokens(word, reviewText) %>%
   filter(!word %in% stop_words$word, str_detect(word, "^[a-z']+$"))
 
@@ -126,11 +126,11 @@ reviews_scored <- reviews_words %>%
 
 # get the mean score for each USER
 review_scores_summary <- reviews_scored %>%
-  group_by(reviewerID, overall) %>%
-  summarise(nrc_score = round(mean(nrc, na.rm = T),3),
-            bing_score = round(mean(bing, na.rm = T),3),
-            loughran_score = round(mean(loughran, na.rm = T),3),
-            afinn_score = round(mean(afinn, na.rm = T),3))
+  group_by(reviewerID, asin, overall) %>%
+  summarise(nrc_score = round(mean(nrc, na.rm = TRUE),3),
+            bing_score = round(mean(bing, na.rm = TRUE),3),
+            loughran_score = round(mean(loughran, na.rm = TRUE),3),
+            afinn_score = round(mean(afinn, na.rm = TRUE),3))
 
 # postprocessing
 # ploting results 
@@ -164,48 +164,61 @@ grid.arrange(afinn.box, nrc.box, bing.box, loughran.box, nrow = 2)
 
 # test without sentimental score (only overall) > if work > add sentimental score
 
-set.seed(100)
+set.seed(70)
 
-data_ech_reco <- data.frame(data_ech$reviewerID ,data_ech$asin, data_ech$overall)
-colnames(data_ech_reco) <- c("reviewerID","product_id", "overall")
 
-data_ech_reco$reviewerID <- as.numeric(data_ech_reco$reviewerID)
-data_ech_reco$overall <- as.numeric(data_ech_reco$overall)
+reco <- function(score_column){
 
-setorder(data_ech_reco, product_id)
+  review_scores_summary_reco <- as.data.frame(review_scores_summary)
+  review_scores_summary_reco <- na.omit(review_scores_summary_reco)
+  
+  data_ech_reco <- data.frame(review_scores_summary_reco$reviewerID, review_scores_summary_reco$asin, review_scores_summary_reco[,score_column])
+  colnames(data_ech_reco) <- c("reviewerID","product_id", "score")
+  
+  data_ech_reco$reviewerID <- as.numeric(data_ech_reco$reviewerID)
+  
+  setorder(data_ech_reco, product_id)
+  
+  # converted data_ech_reco into a recommenderlab format called realRatingMatrix
+  g <- acast(data_ech_reco, reviewerID~ product_id)
+  R <- as.matrix(g)
+  r <- as(R, "realRatingMatrix")
+  
+  ratings <- r[rowCounts(r) >= 4, colCounts(r) >= 6]
+  ratings1 <- ratings[rowCounts(ratings) > 2,]
+  
+  # This function shows what the sparse matrix looks like.
+  getRatingMatrix(ratings[c(1:5),c(1:4)])
+  
+  # Histogram of getRatings using Normalized Scores
+  hist(getRatings(normalize(ratings)), breaks=100, xlim = c(-2,2), main = "Normalized-Scores Histogram")
+  hist(getRatings(normalize(ratings, method="Z-score")), breaks = 100, xlim = c(-2,2), main = "Z-score Histogram")
+  
+  # We randomly define the which_train vector that is True for users in the training set and FALSE for the others.
+  # Will set the probability in the training set as 80%
+  which_train <- sample(x = c(TRUE, FALSE), size = nrow(ratings1), replace = TRUE, prob = c(0.8, 0.2))
+  data_ech_reco_train <- ratings1[which_train, ]
+  data_ech_reco_test <- ratings1[!which_train, ]
+  
+  # -----UBCF
+  # The method computes the similarity between users with cosine
+  UBCF_model <- Recommender(data = data_ech_reco_train, method = "UBCF")
+  UBCF_predicted <- predict(object = UBCF_model, newdata = data_ech_reco_test, n = 5)
+  
+  # list with the recommendations to the test set users.
+  reco_matrix <- sapply(UBCF_predicted@items, function(x) {
+    colnames(ratings)[x]
+  })
+  reco_matrix[1:20]
+}
 
-# converted data_ech_reco into a recommenderlab format called realRatingMatrix
-g <- acast(data_ech_reco, reviewerID~ product_id)
-R <- as.matrix(g)
-r <- as(R, "realRatingMatrix")
-
-ratings <- r[rowCounts(r) >= 4, colCounts(r) >= 6]
-ratings1 <- ratings[rowCounts(ratings) > 2,]
-
-# This function shows what the sparse matrix looks like.
-getRatingMatrix(ratings[c(1:5),c(1:4)])
-
-# Histogram of getRatings using Normalized Scores
-hist(getRatings(normalize(ratings)), breaks=100, xlim = c(-2,2), main = "Normalized-Scores Histogram")
-hist(getRatings(normalize(ratings, method="Z-score")), breaks = 100, xlim = c(-2,2), main = "Z-score Histogram")
-
-# We randomly define the which_train vector that is True for users in the training set and FALSE for the others.
-# Will set the probability in the training set as 80%
-which_train <- sample(x = c(TRUE, FALSE), size = nrow(ratings1), replace = TRUE, prob = c(0.8, 0.2))
-data_ech_reco_train <- ratings1[which_train, ]
-data_ech_reco_test <- ratings1[!which_train, ]
-
-# -----UBCF
-# The method computes the similarity between users with cosine
-UBCF_model <- Recommender(data = data_ech_reco_train, method = "UBCF")
-UBCF_predicted <- predict(object = UBCF_model, newdata = data_ech_reco_test, n = 5)
-
-# list with the recommendations to the test set users.
-reco_matrix <- sapply(UBCF_predicted@items, function(x) {
-  colnames(ratings)[x]
-})
-reco_matrix[1:50]
-
+# recomendation with overall score
+reco("overall")
+# recomendation with sentimental score
+reco("nrc_score")
+reco("bing_score")
+reco("afinn_score")
+reco("loughran_score")
 
 
 # Evaluating the Recommender Systems
