@@ -202,19 +202,19 @@ reco <- function(score_column, ratioTest, ratioTrain){
   UBCF_predicted <- predict(object = UBCF_model, newdata = data_ech_reco_test, n = 3)
   
   # list with the recommendations to the test set users.
-  reco_matrix <- sapply(UBCF_predicted@items, function(x) {
-    colnames(ratings)[x]
-  })
-  reco_matrix[1]
+  reco_matrix <- sapply(UBCF_predicted@items, function(x) { colnames(ratings)[x] })
+  
+  # recommendation only for user with numericalID = 13 
+  reco_matrix$`13`
 }
 
 # recomendation with overall score
 reco(score_column = "overall", ratioTest = 1, ratioTrain = 0.4)
 # recomendation with sentimental score
-reco(score_column = "nrc_score", ratioTest = 0.8, ratioTrain = 0.2)
-reco(score_column = "bing_score", ratioTest = 0.8, ratioTrain = 0.2)
-reco(score_column = "loughran_score", ratioTest = 0.8, ratioTrain = 0.2)
-reco(score_column = "afinn_score", ratioTest = 0.8, ratioTrain = 0.2)
+reco(score_column = "nrc_score", ratioTest = 1, ratioTrain = 0.4)
+reco(score_column = "bing_score", ratioTest = 1, ratioTrain = 0.4)
+reco(score_column = "loughran_score", ratioTest = 1, ratioTrain = 0.4)
+reco(score_column = "afinn_score", ratioTest = 1, ratioTrain = 0.4)
 
 
 # ------------------------------------------------------------------------
@@ -243,7 +243,7 @@ eval <- function(score_column){
   ratings <- r[rowCounts(r) >= 4, colCounts(r) >= 6]
   ratings1 <- ratings[rowCounts(ratings) > 2,]
   
-  eval_sets <- evaluationScheme(data = ratings1, method = "cross-validation", k = 4, given = 2, goodRating = 5)
+  eval_sets <- evaluationScheme(data = ratings1, method = "cross-validation", k = 4, given = 2, goodRating = 3)
   size_sets <-sapply(eval_sets@runsTrain, length)
   
   models_evaluated <- list(UBCF_cos = list(name = "UBCF", param = list(method = "cosine")))
