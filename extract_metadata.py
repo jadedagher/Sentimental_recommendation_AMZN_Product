@@ -23,7 +23,7 @@ def getDF(path):
     i += 1
   return pd.DataFrame.from_dict(df, orient='index')
 
-df = getDF('data/meta_Clothing_Shoes_and_Jewelry.json.gz')
+df = getDF('data/meta_Digital_Music.json.gz')
 
 light_df = df.loc[:,['asin', 'title', 'price', 'brand']]
 
