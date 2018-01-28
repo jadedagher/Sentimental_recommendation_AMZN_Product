@@ -257,8 +257,8 @@ eval <- function(score_column){
   # extract the related average confusion matrices
   avg_matrices <- lapply(list_results, avg)
   
-  # explore the performance evaluation
-  head(avg_matrices$UBCF_cos[, 5:8])
+  # explore the performance evaluation (*100 to convert in %)
+  head(avg_matrices$UBCF_cos[, 5:8]*100)
   
   # plot
   # plot(list_results, annotate = 1)
