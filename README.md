@@ -12,17 +12,54 @@ The choosen dataset deals about Digital Music. Here are the useful parameters :
 
 reviewerID | asin | product_Title | reviewText | overall|
 -----------|------|---------------|------------|--------|
+A2UI2GW70Q8EXA|B0000002HZ|Too Late to Cry|I think this is by far the best CD I have ever purchased. (...) |5|
+
 *asin* is the productID and *overall* is a global rating of the product. 
 
 ### Python data process
 
-### Data enrichment 
+The full dataset is a merge of two files : one with the rating, the other with the review. 
+This files are big enought to be not opened with R Studio.
+
+The aim of the python script is to extract the useful columns (product_title, product_brand, product_price) and merge them with the review file. 
+
+Once this columns are extracted, we put them into a new dataframe and we create a csv file called *light_metadata.csv*. 
+The original size was reduce by 3/4. 
+
+Moreover, as a end-of-product point of view, suggest products by names gives a better user experience than suggest them by IDs.
+
+### Data merge
+
+
+Finally, we can import the *light_metadata.csv* into RStudio  
+
+```
+product_metadata <-  read.csv("data/light_metadata.csv", header=TRUE, sep=",")
+```
+
+Then, we merge with a *Left Join* both of the files thanks to the *ASIN* parameter. 
+
+```
+full_data <- merge(reviews_data, product_metadata, by="asin", all.x = TRUE)
+```
+
+### Dataset Optimization 
+
+We optimize the dataset to have only full lines : we don't want missing or NA values. 
+
+By observing the dataset, after the merge operation, the most empty column is "product_brand". That's why we delete every line with an empty value for this parameter. 
+
 
 ### Problems encoutered
 
-At the beginning of the project, we used the *Clothing, Shoes and Jewelry* dataset from Amazon.
+- We took random values in the dataset but the results were hard to analyze. Because the chosen dataset is light, we took it full and not a random ratio of it. 
+
+
+- We used the *reviews_Clothing_Shoes_and_Jewelry_5.json.gz* dataset from Amazon.
 The dataset quality wasn't so good so our algorithm didn't work well. 
 By changing the dataset handle us to have better recommendations results.
+
+
 
 ## 3. Sentimental Analysis
 
@@ -34,7 +71,7 @@ The National Research Council of Canada (NRC) lexicon was developed by crowdsour
 
 ### BING Scoring
 
-The Bing (Hu Liu 2004) lexicon was developed by searching for words adjacent to a predefined list of positive or negative terms. The idea is that if a word consistently shows up next to “happy” that word is probably positive. Again, for this analysis, _**positive** is converted to 1_ while _**negative* is converted to -1_.
+The Bing (Hu Liu 2004) lexicon was developed by searching for words adjacent to a predefined list of positive or negative terms. The idea is that if a word consistently shows up next to “happy” that word is probably positive. Again, for this analysis, _**positive** is converted to 1_ while _**negative** is converted to -1_.
 
 
 ### Problems encoutered
@@ -55,11 +92,14 @@ There are severals methods to recommend products but we will only speak about *U
 
 ##### Cosine as distance function
 
-
+This method is based on the scalar product. Each user is a multidimensional vector containing each parameter useful. 
+The picture below describes well the understanding of the method. 
 
 ![Cosinus Similarity](/Users/lux/Documents/esme/r-language/project/screens/cosinus-similarity.png)
 
 ##### Pearson correlation as distance function
+
+
 
 ### Masking technic
 
