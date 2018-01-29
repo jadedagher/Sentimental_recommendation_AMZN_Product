@@ -95,7 +95,7 @@ There are severals methods to recommend products but we will only speak about *U
 This method is based on the scalar product. Each user is a multidimensional vector containing each parameter useful. 
 The picture below describes well the understanding of the method. 
 
-![Cosinus Similarity](/Users/lux/Documents/esme/r-language/project/screens/cosinus-similarity.png)
+![Cosinus Similarity](http://blog.christianperone.com/wp-content/uploads/2013/09/cosinesimilarityfq1.png)
 
 ##### Pearson correlation as distance function
 
