@@ -77,6 +77,27 @@ data_ech <- cleaned_data
 # data_ech <- cleaned_data[sample(1:nrow(cleaned_data),N),]
 
 # ------------------------------------------------------------------------
+# Data set insight (for the reporting)
+# ------------------------------------------------------------------------
+
+# star distribution 
+table(data_ech$overall)
+
+starsDistribuation <- data.frame(table(data_ech$overall))
+colnames(starsDistribuation) <- c("stars_number", "count")
+
+ggplot(starsDistribuation, aes(x=stars_number, y=count)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  theme_minimal()
+
+# COUNT unique User
+length(unique(data_ech$reviewerID))
+
+# COUNT unique product
+length(unique(data_ech$asin))
+
+# ------------------------------------------------------------------------
 # sentimental reviews analysis (source code: https://goo.gl/iaLjj3)
 # ------------------------------------------------------------------------
 
@@ -245,6 +266,7 @@ eval <- function(score_column){
   size_sets <-sapply(eval_sets@runsTrain, length)
   
   models_evaluated <- list(UBCF_cos = list(name = "UBCF", param = list(method = "cosine")))
+  # models_evaluated <- list(IBCF_cost = list(name = "IBCF", param = list(method = "cosine")), IBCF_cor = list(name = "IBCF", param = list(method = "pearson")), UBCF_cos = list(name = "UBCF", param = list(method = "cosine")), UBCF_cor = list(name = "UBCF", param = list(method = "pearson")), random = list(name = "RANDOM", param = NULL))
   
   # In order to evaluate the models, we need to test them, varying the number of items.
   n_recommendations <- c(1, 10, 50, 100, 200, 500, 1000)
@@ -257,8 +279,9 @@ eval <- function(score_column){
   
   # explore the performance evaluation (*100 to convert in %)
   return(head(avg_matrices$UBCF_cos[, 5:8]*100))
+  # head(avg_matrices$UBCF_cos[, 5:8]*100)
   
-  # plot
+  # plot results
   # plot(list_results, annotate = 1)
   # plot(list_results, "prec/rec", annotate = 1, legend = "bottomright", ylim = c(0,0.4))
 }
