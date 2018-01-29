@@ -67,14 +67,14 @@ cleaned_data  <- data.table(cleaned_data)
 set.seed(101)
 
 # N = 50% rows of cleaned_data 
-N <- floor(nrow(cleaned_data) * (50/100))
+# N <- floor(nrow(cleaned_data) * (50/100))
 
-#setorder(data_ech, product_title)
+setorder(data_ech, product_title)
 
-#data_ech <- cleaned_data[1:20000,]
+data_ech <- cleaned_data
 
 # Creating a new dataset with 50% of rows of cleaned_data 
-data_ech <- cleaned_data[sample(1:nrow(cleaned_data),N),]
+# data_ech <- cleaned_data[sample(1:nrow(cleaned_data),N),]
 
 # ------------------------------------------------------------------------
 # sentimental reviews analysis (source code: https://goo.gl/iaLjj3)
@@ -159,14 +159,12 @@ grid.arrange(nrc.box, bing.box, loughran.box, afinn.box, nrow = 2)
 # recommendation System based on sentimental analysis score recorded
 # ------------------------------------------------------------------------
 
-# test without sentimental score (only overall) > if work > add sentimental score
+review_scores_summary_reco <- as.data.frame(review_scores_summary)
+review_scores_summary_reco <- na.omit(review_scores_summary_reco)
 
 reco <- function(score_column, ratioTest, ratioTrain){
   
-  set.seed(70)
-
-  review_scores_summary_reco <- as.data.frame(review_scores_summary)
-  review_scores_summary_reco <- na.omit(review_scores_summary_reco)
+  set.seed(170)
   
   data_ech_reco <- data.frame(review_scores_summary_reco$reviewerID, review_scores_summary_reco$product_title, review_scores_summary_reco[,score_column])
   colnames(data_ech_reco) <- c("reviewerID","product_title", "score")
@@ -193,8 +191,8 @@ reco <- function(score_column, ratioTest, ratioTrain){
   # We randomly define the which_train vector that is True for users in the training set and FALSE for the others.
   # Will set the probability in the training set as 80%
   which_train <- sample(x = c(TRUE, FALSE), size = nrow(ratings1), replace = TRUE, prob = c(ratioTest, ratioTrain))
-  data_ech_reco_train <- ratings1[which_train, ]
-  data_ech_reco_test <- ratings1[!which_train, ]
+  data_ech_reco_train <- ratings1[which_train,]
+  data_ech_reco_test <- ratings1[!which_train,]
   
   # -----UBCF
   # The method computes the similarity between users with cosine
@@ -205,7 +203,7 @@ reco <- function(score_column, ratioTest, ratioTrain){
   reco_matrix <- sapply(UBCF_predicted@items, function(x) { colnames(ratings)[x] })
   
   # recommendation only for user with numericalID = 13 
-  reco_matrix$`13`
+  reco_matrix$'79'
 }
 
 # recomendation with overall score
@@ -225,9 +223,6 @@ eval <- function(score_column){
   
   set.seed(70)
   
-  review_scores_summary_reco <- as.data.frame(review_scores_summary)
-  review_scores_summary_reco <- na.omit(review_scores_summary_reco)
-  
   data_ech_reco <- data.frame(review_scores_summary_reco$reviewerID, review_scores_summary_reco$product_title, review_scores_summary_reco[,score_column])
   colnames(data_ech_reco) <- c("reviewerID","product_title", "score")
     
@@ -243,7 +238,7 @@ eval <- function(score_column){
   ratings <- r[rowCounts(r) >= 4, colCounts(r) >= 6]
   ratings1 <- ratings[rowCounts(ratings) > 2,]
   
-  eval_sets <- evaluationScheme(data = ratings1, method = "cross-validation", k = 4, given = 2, goodRating = 3)
+  eval_sets <- evaluationScheme(data = ratings1, method = "cross-validation", given = 2, goodRating = 3)
   size_sets <-sapply(eval_sets@runsTrain, length)
   
   models_evaluated <- list(UBCF_cos = list(name = "UBCF", param = list(method = "cosine")))
