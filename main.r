@@ -203,7 +203,7 @@ reco <- function(score_column, ratioTest, ratioTrain){
   reco_matrix <- sapply(UBCF_predicted@items, function(x) { colnames(ratings)[x] })
   
   # recommendation only for user with numericalID = 13 
-  reco_matrix$'79'
+  return(reco_matrix$'79')
 }
 
 # recomendation with overall score
@@ -221,7 +221,7 @@ reco(score_column = "afinn_score", ratioTest = 1, ratioTrain = 0.4)
 
 eval <- function(score_column){
   
-  set.seed(70)
+  set.seed(170)
   
   review_scores_summary_reco <- as.data.frame(review_scores_summary)
   review_scores_summary_reco <- na.omit(review_scores_summary_reco)
@@ -256,7 +256,7 @@ eval <- function(score_column){
   avg_matrices <- lapply(list_results, avg)
   
   # explore the performance evaluation (*100 to convert in %)
-  head(avg_matrices$UBCF_cos[, 5:8]*100)
+  return(head(avg_matrices$UBCF_cos[, 5:8]*100))
   
   # plot
   # plot(list_results, annotate = 1)
