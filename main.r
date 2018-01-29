@@ -159,12 +159,12 @@ grid.arrange(nrc.box, bing.box, loughran.box, afinn.box, nrow = 2)
 # recommendation System based on sentimental analysis score recorded
 # ------------------------------------------------------------------------
 
-review_scores_summary_reco <- as.data.frame(review_scores_summary)
-review_scores_summary_reco <- na.omit(review_scores_summary_reco)
-
 reco <- function(score_column, ratioTest, ratioTrain){
   
   set.seed(170)
+  
+  review_scores_summary_reco <- as.data.frame(review_scores_summary)
+  review_scores_summary_reco <- na.omit(review_scores_summary_reco)
   
   data_ech_reco <- data.frame(review_scores_summary_reco$reviewerID, review_scores_summary_reco$product_title, review_scores_summary_reco[,score_column])
   colnames(data_ech_reco) <- c("reviewerID","product_title", "score")
@@ -222,6 +222,9 @@ reco(score_column = "afinn_score", ratioTest = 1, ratioTrain = 0.4)
 eval <- function(score_column){
   
   set.seed(70)
+  
+  review_scores_summary_reco <- as.data.frame(review_scores_summary)
+  review_scores_summary_reco <- na.omit(review_scores_summary_reco)
   
   data_ech_reco <- data.frame(review_scores_summary_reco$reviewerID, review_scores_summary_reco$product_title, review_scores_summary_reco[,score_column])
   colnames(data_ech_reco) <- c("reviewerID","product_title", "score")
