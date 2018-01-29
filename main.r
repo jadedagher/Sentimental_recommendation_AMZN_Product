@@ -67,7 +67,7 @@ cleaned_data  <- data.table(cleaned_data)
 set.seed(101)
 
 # N = 50% rows of cleaned_data 
-# N <- floor(nrow(cleaned_data) * (50/100))
+# N <- floor(nrow(cleaned_data) * (80/100))
 
 setorder(data_ech, product_title)
 
@@ -174,7 +174,7 @@ reco <- function(score_column, ratioTest, ratioTrain){
   setorder(data_ech_reco, product_title)
   
   # converted data_ech_reco into a recommenderlab format called realRatingMatrix
-  g <- acast(data_ech_reco, reviewerID~ product_title)
+  g <- acast(data_ech_reco, reviewerID~ product_title, value.var="score")
   R <- as.matrix(g)
   r <- as(R, "realRatingMatrix")
   
@@ -231,7 +231,7 @@ eval <- function(score_column){
   setorder(data_ech_reco, product_title)
   
   # converted data_ech_reco into a recommenderlab format called realRatingMatrix
-  g <- acast(data_ech_reco, reviewerID~ product_title)
+  g <- acast(data_ech_reco, reviewerID~ product_title, value.var="score")
   R <- as.matrix(g)
   r <- as(R, "realRatingMatrix")
   
