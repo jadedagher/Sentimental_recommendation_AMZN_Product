@@ -87,8 +87,12 @@ The Bing (Hu Liu 2004) lexicon was developed by searching for words adjacent to 
 ### Statistical analysis
 
 
-
 ![sentimental vs overall](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/sentimental_vs_overall.png?raw=true)
+
+
+This box-plots describes how a rating value change between the overall score and a sentimental analysis method score.
+
+For example, in the box plot below, for the NRC method, a 5-rating as overall   equals a 4-rating as NRC **in average**.
 
 
 ### Problems Encoutered
@@ -116,12 +120,12 @@ The picture below describes well the understanding of the method.
 
 ### Masking Technic
 
-With collaborative filtering, classic technic (split the full data into two datasets : one for train and the other for test) is not going to work because you need all of the user/item interactions to find the proper matrix factorization. A better method is to hide a certain percentage of the user/item interactions from the model during the training phase chosen at random. Then, check during the test phase how many of the items that were recommended the user actually ended up purchasing in the end. Ideally, you would ultimately test your recommendations with some kind of A/B test or utilizing data from a time series where all data prior to a certain point in time is used for training while data after a certain period of time is used for testing.
+With collaborative filtering, classic technic (split the full data into two datasets : one for train and the other for test) is not going to work because you need all of the user/item interactions to find the proper matrix factorization. A better method is to hide a certain percentage of the user/item interactions from the model during the training phase chosen at random. Then, check during the test phase how many of the items that were recommended the user actually ended up purchasing in the end. 
 
-
-Our test set is an exact copy of our original data. The training set, however, will mask a random percentage of user/item interactions and act as if the user never purchased the item (making it a sparse entry with a zero). We then check in the test set which items were recommended to the user that they ended up actually purchasing. If the users frequently ended up purchasing the items most recommended to them by the system, we can conclude the system seems to be working.
+Our test set is an exact copy of our original data. The training set, however, will mask a random percentage of user/item interactions and act as if the user never rated the item (making it a sparse entry with a zero). We then check in the test set which items were recommended to the user that they ended up actually purchasing. If the users frequently ended up purchasing the items most recommended to them by the system, we can conclude the system seems to be working.
 
 ![Masking Technic](https://jessesw.com/images/Rec_images/MaskTrain.png)
+
 
 
 ### Results
@@ -136,14 +140,16 @@ The masking ratio is set at 0.4.
 ![Overall Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_overall.png?raw=true)
 
 
+**NRC**
+
+![NRC Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_nrc.png?raw=true)
+
+
 **BING**
 
 ![BING Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_bing.png?raw=true)
 
 
-**NRC**
-
-![NRC Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_nrc.png?raw=true)
 
 
 #### Interpretation
@@ -198,40 +204,43 @@ evaluate(x = eval_sets, method = models_evaluated, n = n_recommendations)
 
 ### Results
 
-**Overall**
+All of the results are multiplied by 100 to be read as percentage directly. 
 
-![](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/eval_overall.png?raw=true)
-
-
-**BING**
-
-![](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/eval_bing.png?raw=true)
-
-
-**NRC**
-
-![](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/eval_nrc.png?raw=true)
+![](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/eval_all.png?raw=true)
 
 
 ### Interpretation
 
 For all the results, the precision decreases with the increase of the number of recommendations. 
 
-For one recommendation, we have this results : 
+![](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/pr_all.png?raw=true)
 
-method | overall | bing | nrc |
--------|------|------|-----|
-precision| 8.85 | 8.25 | 8.15 |
+*This graphs shows the precision/recall ration depending on the number of recommendations.*
 
-The overall method has a better precision but it's probably due to the change of scale applies to the *BING* and *NRC* methods. 
+The overall method has a better precision but it's probably due to the change of scale applies to the *NRC* and *BING* methods. 
 
-For our dataset and one recommendation, the BING technic is more precise  than the NRC technic. 
-
-But when the number of recommendations increases, the NRC technic is more precise than the BING technic. 
+For our dataset, the *NRC* technic is more precise than the *BING* technic. 
 
 
 
 ## 6. Conclusion
+
+Let's resume the steps we went through : 
+
+- Clean the data
+- Get a sentiment rating for each method
+- Test the recommendation for user 79
+- Evaluate the recommender system 
+
+
+For the digital music dataset, the recommendation is not very precise : nearly 10% of precision. 
+
+In the recommendation world, explicite recommendation (like the one we did) are not well popular. Few people rates their film or songs. Because of it's lack of data, our recommender can't learn well and have a pertinent suggestion.
+
+
+Our biggest issue was to work with the prebuild function of *recommenderlab* package because we didn't understand well how works each function. 
+For example, implemant the masking technic in R was not so easy. We can mask a ration of data but it's hard to compare the predicted value and the 
+
 
 ## 7. To go further
 
@@ -243,15 +252,25 @@ But when the number of recommendations increases, the NRC technic is more precis
 
 The Loughran lexicon is specifically designed for analysis of positivity in shareholder reports. Again, only “positive” and “negative” ratings are used here and they are converted to numeric values.
 
+Here are the results of the recommendation, in the same conditions described in the *Sentimental Analysis* section : 
+![Overall Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_laughran.png?raw=true)
+
+One result here is in common with the Overall recommendation. It is due to the inside numeric value conversion which is more precise than only change the scale. 
+
 ##### AFINN Scoring (option)
 
 AFINN is a set of words rated on a scale from -5 to 5 with negative numbers indicating negative sentiments and positive numbers indicating positive sentiments. The original scale is retained here.
+
+Here are the results of the recommendation, in the same conditions described in the *Sentimental Analysis* section : 
+![Overall Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_afinn.png?raw=true)
 
 ### IBCF
 --------
 We test the same dataset with the IBCF method (Item-Based Collaborative Filtering). 
 Here is a results-curve to compare with UBCF and random methods. 
-![all_curves-2](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/all_curves-2.png?raw=true)
+![all_curves](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/all_curves.png?raw=true)
+
+For this dataset, the UBCF method is better than the IBCF one until 100 recommendations. After 100 recommendations, the precision/recall are the same for the UBCF, IBCF and random method. 
 
 
 ## 8. References
