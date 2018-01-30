@@ -2,32 +2,28 @@
 
 ## 1. Introduction
 
-The goal of this project is to build a little recommender system based on Users similarity. The dataset needs to have reviews and ratings. The dataset is available [here](https://drive.google.com/drive/folders/1pRia7E1BFe0fUKhYsRAEbs9N_tI-yErA?usp=sharing).
+The goal of this project is to build a little recommender system based on Users similarities by evaluating their product_reviews sentiment, by doing this, we will try to build a score which will be used to evaluate the similarity between the users. To do so it is mendatory to have at least a dataset that contains a list of reviewerID, product_ID (a.k.a. asin), product_reviews and product_ratings (that we will build afterwards thanks to the sentimental analysis). If you want to try this analysis at home feel free to download the datasets [here](https://drive.google.com/drive/folders/1pRia7E1BFe0fUKhYsRAEbs9N_tI-yErA?usp=sharing).
 
 ## 2. Import and Clean data
 
 ### Dataset Choice
 
 
-The choosen dataset deals about Digital Music. Here are the useful parameters : 
+We chose an Amazon dataset that deals about Digital Music. Here are the useful parameters that will be used along the analysis : 
 
 reviewerID | asin | product_Title | reviewText | overall|
 -----------|------|---------------|------------|--------|
 A2UI2GW70Q8EXA|B0000002HZ|Too Late to Cry|I think this is by far the best CD I have ever purchased. (...) |5|
 
-*asin* is the productID and *overall* is a global rating of the product. 
+*asin* is the product_ID and *overall* is a global rating of the product. 
 
 ### Python Data Process
 
-The full dataset is a merge of two files : one with the rating, the other with the review. 
-This files are big enought to be not opened with R Studio.
+The full dataset is a merge of two files : one with the contains the product reviews by user and the other that contains static products information (title, brand, price). 
 
-The aim of the python script is to extract the useful columns (*product_title*, *product_brand*, *product_price*) and merge them with the review file. 
+As the file containing static products information was too heavy for an upload in R Studio (in memory), we did a simple python script that extract only the usefull columns (*product_title*, *product_price*, *product_brand*) and create a lighter CSV file (*light_metadata.csv*) that can be easily read in memory (The original size was reduce by 3/4).
 
-Once this columns are extracted, we put them into a new dataframe and we create a csv file called *light_metadata.csv*. 
-The original size was reduce by 3/4. 
-
-Moreover, as a end-of-product point of view, suggest products by names gives a better user experience than suggest them by IDs.
+This step isn't mendatory, but as a end-of-product point of view, suggest products by names gives a better user experience than suggest them by IDs which is too raw.
 
 ### Data Merge
 
