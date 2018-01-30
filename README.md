@@ -42,18 +42,23 @@ full_data <- merge(reviews_data, product_metadata, by="asin", all.x = TRUE)
 
 ### Dataset Optimization 
 
-We optimize the dataset to have only full lines : we don't want missing or NA values. 
+Because of this merger, some missing value has been introduced into our main dataset *full_data*
 
-By observing the dataset, after the merge operation, the most empty column is "product_brand". That's why we delete every line with an empty value for this parameter. 
+So we did some optimization to have a cleanned and robust dataset without missing or NA values.
 
+By observing the main dataset, the most empty column is "product_brand". That's why we delete every line with an empty value for this parameter. 
 
 ### Problems Encoutered
 
-- We took random values in the dataset but the results were hard to analyze. Because the chosen dataset is light, we took it full and not a random ratio of it. 
+##### Large file importation with R
+- Before understanding that the only way to open the large static products information file was to make a script in python, we lost a lot of time trying to open it with R.
 
+##### Dataset Optimization for recommendation system 
+- In order to do things well, at the begining, we reduce the main dataset in order to reduce time computing by taking random rows. Unfortunately by doing this the similarity matrix was very little populated and the recommendation system wasn't working well (1 user had his recommendation working on 50). For bearing this problem we order the dataset by product_title and we didn't reduce it to have better performances.
 
-- We used the *reviews_Clothing_Shoes_and_Jewelry_5.json.gz* dataset from Amazon.
-The dataset quality wasn't so good so our algorithm didn't work well. 
+##### Problem with the first Amazon dataset used
+- At the beginning of the analysis, we used the *reviews_Clothing_Shoes_and_Jewelry_5.json.gz* dataset from Amazon.
+The dataset quality wasn't so good so our algorithm didn't work well (the similarity matrix was almost empty so we didn't have any recommendation). 
 By changing the dataset handle us to have better recommendations results.
 
 
