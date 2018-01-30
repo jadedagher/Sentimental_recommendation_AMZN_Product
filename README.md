@@ -69,7 +69,7 @@ Our dataset contains *text reviews* as a comment of a product. Text isn't so eas
 
 The goal of sentimental analysis is to : 
 
-1. Split a sentence into words. 
+1. Split a product_review sentence into words. 
 2. Give a sentiment of each word with a score
 3. Count number of -1 and 1 to determine the sentence sentiment 
 
@@ -90,14 +90,14 @@ The Bing (Hu Liu 2004) lexicon was developed by searching for words adjacent to 
 ![sentimental vs overall](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/sentimental_vs_overall.png?raw=true)
 
 
-This box-plots describes how a rating value change between the overall score and a sentimental analysis method score.
+This box-plots compare how a rating value change between the overall score and a sentimental analysis method score.
 
-For example, in the box plot below, for the NRC method, a 5-rating as overall   equals a 4-rating as NRC **in average**.
+For example, in the box plot below, for the NRC method, a 5-rating as overall equals a 4-rating as NRC **in average**.
 
 
 ### Problems Encoutered
 
-We use the overall score as reference. This score is between 0 and 5. So we had to change the output scale of the NRC and BING scoring from {-1, 1} to [0, 5]. 
+- We use the overall score as reference. This score is between 0 and 5. So we had to change the output scale of the NRC and BING scoring from {-1, 1} to [0, 5]. 
 We did so because we have to plot the result of the algorithm and by doing this, the comparaison is easier. 
 
 
@@ -166,7 +166,7 @@ The reason is that each song's review has a different score because of the senti
 
 #### The `evaluateScheme` function has as parameters :
 
-- input cleaned data : *ratings1*
+- input cleaned data : *ratings1*,
 - a method of validation : *cross-validation*, 
 - the number of time the evaluation is done (10 by default for cross-validation), 
 - the number of single item given for the evaluation : *2*,
@@ -178,7 +178,7 @@ eval_sets <- evaluationScheme(data = ratings1, method = "cross-validation", give
 
 ###### Cross-validation method consists on creating differents train/test dataset and run each of them to reduce overfitting. 
 
-###### We set the minimal rating at 3 because we consider a song can be considered as good with this minimal rating. Moreover, it allows us to recommend with more data and to be more precise.
+###### We set the minimal rating at 3 because we consider a song can be considered as good with this minimal rating. Moreover, it allows us to recommend with more data and to improve the accuracy.
 
 
 #### The model method is set to *UBCF cosine* (or *UBCF Pearson*)
@@ -233,9 +233,9 @@ Let's resume the steps we went through :
 - Evaluate the recommender system 
 
 
-For the digital music dataset, the recommendation is not very precise : nearly 10% of precision. 
+For the digital music dataset, the recommendation isn't very accurate: the precision is below 10%.
 
-In the recommendation world, explicite recommendation (like the one we did) are not well popular. Few people rates their film or songs. Because of it's lack of data, our recommender can't learn well and have a pertinent suggestion.
+In the recommendation world, explicit recommendation (like the one we did) are not well popular. Few people rates their film or songs. Because of it's lack of data, our recommender can't learn well and have a pertinent suggestion.
 
 
 Our biggest issue was to work with the prebuild function of *recommenderlab* package because we didn't understand well how works each function. 
@@ -270,7 +270,7 @@ We test the same dataset with the IBCF method (Item-Based Collaborative Filterin
 Here is a results-curve to compare with UBCF and random methods. 
 ![all_curves](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/all_curves.png?raw=true)
 
-For this dataset, the UBCF method is better than the IBCF one until 100 recommendations. After 100 recommendations, the precision/recall are the same for the UBCF, IBCF and random method. 
+For this dataset, UBCF method performances is better than the IBCF one until 100 recommendations. After 100 recommendations, the precision/recall are the same for the UBCF, IBCF and random method. 
 
 
 ## 8. References
