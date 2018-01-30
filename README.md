@@ -67,6 +67,9 @@ By changing the dataset handle us to have better recommendations results.
 
 Our dataset contains *text reviews* as a comment of a product. Text isn't so easy to process. With *Sentimental Analysis* method, we can have a numeric rating of a textual review. 
 
+
+![Explain Sentimental Analysis](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/sentimental_analysis.png?raw=true)
+
 ### NRC Scoring
 
 The National Research Council of Canada (NRC) lexicon was developed by crowdsourcing sentiment ratings on Amazon’s Mechanical Turk platform. Words are rated as *positive*, *negative* or one of eight emotions (anger, trust, etc). For this analysis, only *positive* and *negative* ratings are used and _**positive** is converted to **1**_ while _**negative** is converted to **-1**_.
@@ -78,8 +81,8 @@ The Bing (Hu Liu 2004) lexicon was developed by searching for words adjacent to 
 
 ### Problems Encoutered
 
-We use the overall score as reference. This score is between 0 and 5. So we had to change the output scale of the NRC and BING scoring from {-1, 1} to [0, 5]
-because our recommender algorithm is working with 0-5 ratings and not with binary ratings. 
+We use the overall score as reference. This score is between 0 and 5. So we had to change the output scale of the NRC and BING scoring from {-1, 1} to [0, 5]. 
+We did so because we have to plot the result of the algorithm and by doing this, the comparaison is easier. 
 
 
 
@@ -104,6 +107,12 @@ The picture below describes well the understanding of the method.
 
 
 ### Masking Technic
+
+With collaborative filtering, classic technic (split the full data into two datasets : one for train and the other for test) is not going to work because you need all of the user/item interactions to find the proper matrix factorization. A better method is to hide a certain percentage of the user/item interactions from the model during the training phase chosen at random. Then, check during the test phase how many of the items that were recommended the user actually ended up purchasing in the end. Ideally, you would ultimately test your recommendations with some kind of A/B test or utilizing data from a time series where all data prior to a certain point in time is used for training while data after a certain period of time is used for testing.
+
+
+Our test set is an exact copy of our original data. The training set, however, will mask a random percentage of user/item interactions and act as if the user never purchased the item (making it a sparse entry with a zero). We then check in the test set which items were recommended to the user that they ended up actually purchasing. If the users frequently ended up purchasing the items most recommended to them by the system, we can conclude the system seems to be working.
+
 ![Masking Technic](https://jessesw.com/images/Rec_images/MaskTrain.png)
 
 ## 5. Recommender System Evaluation
