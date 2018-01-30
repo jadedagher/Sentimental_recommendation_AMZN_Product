@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-The goal of this project is to build a little recommender system based on Users similarities by evaluating their product_reviews sentiment, by doing this, we will try to build a score which will be used to evaluate the similarity between the users. To do so it is mendatory to have at least a dataset that contains a list of reviewerID, product_ID (a.k.a. asin), product_reviews and product_ratings (that we will build afterwards thanks to the sentimental analysis). If you want to try this analysis at home feel free to download the datasets [here](https://drive.google.com/drive/folders/1pRia7E1BFe0fUKhYsRAEbs9N_tI-yErA?usp=sharing).
+The goal of this project is to build a little recommender system based on Users similarities by evaluating their product_reviews sentiment. By doing this, we will try to build a score which will be used to evaluate the similarity between the users. To do so, it is mandatory to have at least a dataset that contains a list of reviewerID, product_ID (a.k.a. asin), product_reviews and product_ratings (that we will build afterwards thanks to the sentimental analysis). If you want to try this analysis at home feel free to download the datasets [here](https://drive.google.com/drive/folders/1pRia7E1BFe0fUKhYsRAEbs9N_tI-yErA?usp=sharing).
 
 ## 2. Import and Clean data
 
@@ -104,6 +104,7 @@ The picture below describes well the understanding of the method.
 
 
 ### Masking Technic
+![Masking Technic](https://jessesw.com/images/Rec_images/MaskTrain.png)
 
 ## 5. Recommender System Evaluation
 
