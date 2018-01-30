@@ -67,8 +67,14 @@ By changing the dataset handle us to have better recommendations results.
 
 Our dataset contains *text reviews* as a comment of a product. Text isn't so easy to process. With *Sentimental Analysis* method, we can have a numeric rating of a textual review. 
 
+The goal of sentimental analysis is to : 
 
-![Explain Sentimental Analysis](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/sentimental_analysis.png?raw=true)
+1. Split a sentence into words. 
+2. Give a sentiment of each word with a score
+3. Count number of -1 and 1 to determine the sentence sentiment 
+
+
+![Explain Sentimental Analysis](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/sentimental_explain.png?raw=true)
 
 ### NRC Scoring
 
@@ -77,6 +83,12 @@ The National Research Council of Canada (NRC) lexicon was developed by crowdsour
 ### BING Scoring
 
 The Bing (Hu Liu 2004) lexicon was developed by searching for words adjacent to a predefined list of positive or negative terms. The idea is that if a word consistently shows up next to “happy” that word is probably positive. Again, for this analysis, _**positive** is converted to 1_ while _**negative** is converted to -1_.
+
+### Statistical analysis
+
+
+
+![sentimental vs overall](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/sentimental_vs_overall.png?raw=true)
 
 
 ### Problems Encoutered
@@ -102,10 +114,6 @@ The picture below describes well the understanding of the method.
 
 ![Cosinus Similarity](http://blog.christianperone.com/wp-content/uploads/2013/09/cosinesimilarityfq1.png)
 
-##### Pearson correlation as distance function
-
-
-
 ### Masking Technic
 
 With collaborative filtering, classic technic (split the full data into two datasets : one for train and the other for test) is not going to work because you need all of the user/item interactions to find the proper matrix factorization. A better method is to hide a certain percentage of the user/item interactions from the model during the training phase chosen at random. Then, check during the test phase how many of the items that were recommended the user actually ended up purchasing in the end. Ideally, you would ultimately test your recommendations with some kind of A/B test or utilizing data from a time series where all data prior to a certain point in time is used for training while data after a certain period of time is used for testing.
@@ -115,11 +123,113 @@ Our test set is an exact copy of our original data. The training set, however, w
 
 ![Masking Technic](https://jessesw.com/images/Rec_images/MaskTrain.png)
 
+
+### Results
+
+Here are the songs recommended by the recommender system for the user 79 using the BING and NRC sentimental analysis.
+
+The masking ratio is set at 0.4.
+
+
+**Overall** *(without sentimental analysis)*
+
+![Overall Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_overall.png?raw=true)
+
+
+**BING**
+
+![BING Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_bing.png?raw=true)
+
+
+**NRC**
+
+![NRC Recommendation](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/reco_nrc.png?raw=true)
+
+
+#### Interpretation
+
+Obviously, the recommended songs are not the same for each method. 
+
+The reason is that each song's review has a different score because of the sentimental analysis. When the recommender works, it recommends on differents data for each method.
+
+
+
 ## 5. Recommender System Evaluation
 
-### Methods
+### Method 
 
-### Plots
+#### The `evaluateScheme` function has as parameters :
+
+- input cleaned data : *ratings1*
+- a method of validation : *cross-validation*, 
+- the number of time the evaluation is done (10 by default for cross-validation), 
+- the number of single item given for the evaluation : *2*,
+- the minimal rating to consider as *positive* and useful for the evaluation : *3*. 
+
+```r
+eval_sets <- evaluationScheme(data = ratings1, method = "cross-validation", given = 2, goodRating = 3)
+```
+
+###### Cross-validation method consists on creating differents train/test dataset and run each of them to reduce overfitting. 
+
+###### We set the minimal rating at 3 because we consider a song can be considered as good with this minimal rating. Moreover, it allows us to recommend with more data and to be more precise.
+
+
+#### The model method is set to *UBCF cosine* (or *UBCF Pearson*)
+
+```r
+models_evaluated <- list(UBCF_cos = list(name = "UBCF", param = list(method = "cosine")))
+```
+
+#### The number of recommendations is a vector of several wanted values
+
+```r
+n_recommendations <- c(1, 10, 50, 100, 200, 500, 1000)
+```
+
+We recommend up to 1000 songs for the user. 
+
+
+### The `evaluate` function needs a scheme, a method and a number of recommendations define upper. 
+```r
+evaluate(x = eval_sets, method = models_evaluated, n = n_recommendations)
+```
+
+
+### Results
+
+**Overall**
+
+![](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/eval_overall.png?raw=true)
+
+
+**BING**
+
+![](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/eval_bing.png?raw=true)
+
+
+**NRC**
+
+![](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/eval_nrc.png?raw=true)
+
+
+### Interpretation
+
+For all the results, the precision decreases with the increase of the number of recommendations. 
+
+For one recommendation, we have this results : 
+
+method | overall | bing | nrc |
+-------|------|------|-----|
+precision| 8.85 | 8.25 | 8.15 |
+
+The overall method has a better precision but it's probably due to the change of scale applies to the *BING* and *NRC* methods. 
+
+For our dataset and one recommendation, the BING technic is more precise  than the NRC technic. 
+
+But when the number of recommendations increases, the NRC technic is more precise than the BING technic. 
+
+
 
 ## 6. Conclusion
 
@@ -139,9 +249,9 @@ AFINN is a set of words rated on a scale from -5 to 5 with negative numbers indi
 
 ### IBCF
 --------
-##### Cosine as distance function
-
-##### Pearson correlation as distance function
+We test the same dataset with the IBCF method (Item-Based Collaborative Filtering). 
+Here is a results-curve to compare with UBCF and random methods. 
+![all_curves-2](https://github.com/jadedagher/sentimental_recommendation_AMZN_Product/blob/master/img/all_curves-2.png?raw=true)
 
 
 ## 8. References
