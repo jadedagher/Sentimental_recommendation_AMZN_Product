@@ -1,4 +1,4 @@
-# R Language Project
+# Sentimental analysis and recommendation system on AMAZON products dataset 
 
 ## 1. Introduction
 
